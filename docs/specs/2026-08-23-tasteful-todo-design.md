@@ -12,6 +12,18 @@
 
 모든 화면 요소는 이 루프에 복무한다. 루프에서 벗어나는 기능(통계, 리뷰, menu bar)은 전부 v2 백로그로 보낸다.
 
+### 계층 모델
+
+| 층 | 질문 | 사는 곳 | 비고 |
+|---|---|---|---|
+| **Goal** (장기) | 왜 | `goals/*.md` 파일 하나 | Inbox 포함 |
+| **Task** (단기) | 무엇 | goal 파일 안의 체크리스트 | 상태: 미배치(백로그) ↔ 배치됨 |
+| **Time block** (오늘) | 언제 | `daily/*.md`의 시간 + 참조 | — |
+
+**"daily task"는 별도 엔티티가 아니다.** task를 타임라인에 드래그하는 순간 그 task가 오늘의 task가 된다 — 같은 task의 두 상태(미배치/배치됨)이지 두 종류가 아니다. 분류는 사용자가 고민하는 것이 아니라 드래그라는 행동이 대신한다.
+
+**Inbox**: 어떤 goal에도 속하지 않는 잡일(택배 반품, 세금 납부 등)을 위한 특수 goal 파일 `goals/inbox.md`. goal 목록 맨 위에 고정 표시한다. "goal을 정하기 전엔 task를 못 적는다"는 마찰을 없애는 완충재.
+
 ### 차별점
 
 "markdown 기반 todo + calendar 연동"은 NotePlan 등 선행 제품이 존재한다. 이 제품의 차별점은 **Goal 컬럼**이다 — 모든 time block이 어느 목표에 복무하는지를 항상 보이게 하는 goal-anchored time blocking (Superfocus의 goal-to-action 철학 + nocal의 markdown 캘린더 결합).
@@ -21,6 +33,7 @@
 | 결정 | 선택 | 근거 |
 |---|---|---|
 | 저장 모델 | 진짜 .md 파일이 source of truth | "markdown 기반" 정체성, 파일 이식성, Obsidian/iCloud/git 호환 |
+| 계층 모델 | Goal → Task → Time block. "daily task"는 별도 종류가 아니라 배치된 상태 | 사용자에게 분류 부담을 지우지 않음. Inbox goal이 무소속 task를 수용 |
 | 파일 구조 | goal 파일 + daily note 혼합 | 표현력 최상. 상태 복제 금지 규칙으로 동기화 복잡도 억제 |
 | 캘린더 연동 | EventKit 읽기 전용 (MVP) | 핵심 경험("빈틈에 계획을 박는다")은 살리고 양방향 동기화 복잡도는 회피 |
 | 기술 스택 | Tauri + React/TypeScript | 웹 기술 활용. EventKit은 Swift 사이드카로 브리지 |
@@ -30,7 +43,7 @@
 ## 3. UI 구성 (3-column)
 
 ### Left — Goal 목록
-- `goals/` 폴더의 .md 파일 목록.
+- `goals/` 폴더의 .md 파일 목록. **Inbox가 맨 위에 고정**, 나머지 goal이 그 아래.
 - 선택하면 main 컬럼에 해당 파일 로드.
 - 각 goal에 미완료 task 수 뱃지 표시.
 - 하단에 goal 추가 버튼(= 새 .md 파일 생성).
