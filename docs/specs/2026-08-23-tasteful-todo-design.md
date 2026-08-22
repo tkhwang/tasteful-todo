@@ -60,6 +60,7 @@
 - **전경 레이어**: 내 time block. task 드롭으로 생성, 드래그로 이동, 엣지 드래그로 리사이즈.
 - task 없이 시간만 잡는 **free block** 허용 (예: `점심`).
 - 같은 task를 여러 시간대에 배치 가능 (여러 세션으로 나눠 일하는 경우).
+- **역방향 생성**: 빈 시간을 드래그하면 입력 팝오버가 뜬다. 제목만 입력하면 free block, **goal을 지정하면 그 goal 파일에 task가 생성**되고 daily note에는 참조가 기록된다 → main에도 task로 나타남. "goal에 소속되는 순간 task가 된다"는 계층 모델의 자연스러운 귀결.
 
 ## 4. 데이터 모델 (파일 포맷)
 
@@ -80,6 +81,7 @@
 2. block ID(`^a1b2`)와 링크 문법(`[[파일#^id]]`)은 **Obsidian 호환**. Obsidian 사용자가 자기 vault를 그대로 쓸 수 있는 잠재적 경로를 열어둔다.
 3. block ID는 task가 처음 타임라인에 배치될 때 자동 생성한다 (이미 있으면 재사용).
 4. 타임라인은 daily note의 참조를 goal 파일에서 해석(resolve)해서 렌더링한다.
+5. **타임라인에서 직접 생성 시**: goal을 지정하면 그 goal 파일 끝에 `- [ ] 제목 ^id`를 append하고 daily note에 참조를 기록한다. goal 미지정 시 daily note에 텍스트만 있는 free block으로 기록한다. 어느 쪽이든 불변 규칙 1은 유지된다.
 
 ## 5. 아키텍처 (Tauri)
 
