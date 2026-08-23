@@ -1,5 +1,6 @@
 import { Editor } from './components/Editor'
 import { GoalList } from './components/GoalList'
+import Timeline from './components/Timeline'
 import Titlebar from './components/Titlebar'
 
 export default function App() {
@@ -9,7 +10,7 @@ export default function App() {
       <div className="columns">
         <GoalList />
         <Editor />
-        <aside className="timeline" aria-label="하루 타임라인" />
+        <Timeline />
       </div>
     </div>
   )

@@ -409,3 +409,250 @@ body {
   margin: 0;
   color: var(--text-secondary);
 }
+
+/* Timeline and date navigation */
+.titlebar-right {
+  align-self: stretch;
+  border-left: 1px solid var(--line);
+}
+
+.datenav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.chev,
+.today-btn {
+  color: inherit;
+  font: inherit;
+  background: transparent;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+.chev {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  place-items: center;
+  color: var(--text-secondary);
+  font-size: 13px;
+  border: 0;
+  border-radius: 6px;
+}
+
+.today-btn {
+  padding: 2px 9px;
+  color: var(--ink);
+  font-size: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.chev:hover,
+.today-btn:hover {
+  color: var(--ink);
+  background: color-mix(in oklab, var(--ink) 6%, var(--panel));
+}
+
+.chev:focus-visible,
+.today-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.timeline {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  padding: 18px 0 24px;
+  background: var(--panel-2);
+  border-left: 1px solid var(--line);
+}
+
+.tl-head {
+  display: flex;
+  flex: none;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 18px 14px;
+}
+
+.tl-date {
+  font-size: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tl-date .dow {
+  margin-left: 4px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.tl-cap {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tl-scroll {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-color: var(--faint) transparent;
+  scrollbar-width: thin;
+}
+
+.grid {
+  position: relative;
+  margin: 0 18px 0 52px;
+}
+
+.hour {
+  position: absolute;
+  right: 0;
+  left: 0;
+  border-top: 1px solid var(--line);
+}
+
+.hour > span {
+  position: absolute;
+  top: -8px;
+  left: -38px;
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.block {
+  position: absolute;
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  padding: 5px 10px;
+  font-size: 12px;
+  line-height: 1.35;
+  border-radius: 7px;
+}
+
+.block .t {
+  display: block;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.78;
+}
+
+.block .n {
+  font-weight: 500;
+}
+
+.block.mine {
+  color: var(--ink);
+  border-left: 3px solid;
+}
+
+.ck-block-pine {
+  background: color-mix(in oklab, var(--g-pine) 16%, var(--panel));
+  border-color: var(--g-pine);
+}
+
+.ck-block-blue {
+  background: color-mix(in oklab, var(--g-blue) 16%, var(--panel));
+  border-color: var(--g-blue);
+}
+
+.ck-block-amber {
+  background: color-mix(in oklab, var(--g-amber) 16%, var(--panel));
+  border-color: var(--g-amber);
+}
+
+.ck-block-plum {
+  background: color-mix(in oklab, var(--g-plum) 16%, var(--panel));
+  border-color: var(--g-plum);
+}
+
+.ck-block-neutral {
+  background: color-mix(in oklab, var(--faint) 16%, var(--panel));
+  border-color: var(--faint);
+}
+
+.block.free {
+  color: var(--text-secondary);
+  background: color-mix(in oklab, var(--ink) 7%, var(--panel));
+  border-left: 3px solid var(--faint);
+}
+
+.block.invalid {
+  color: var(--now);
+  background: color-mix(in oklab, var(--now) 10%, var(--panel));
+  border-color: var(--now);
+}
+
+.block.past {
+  opacity: 0.55;
+}
+
+.block.cal {
+  color: var(--text-secondary);
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in oklab, var(--ink) 6%, transparent) 0 4px,
+    transparent 4px 9px
+  );
+  border: 1px dashed var(--faint);
+}
+
+.block .resize {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 26px;
+  height: 3px;
+  background: color-mix(in oklab, var(--ink) 22%, transparent);
+  border-radius: 2px;
+  opacity: 0;
+  transform: translateX(-50%);
+}
+
+.block.mine:hover .resize {
+  opacity: 1;
+}
+
+.nowline {
+  position: absolute;
+  right: 0;
+  left: -6px;
+  z-index: 3;
+  height: 0;
+  border-top: 1.5px solid var(--now);
+}
+
+.nowline::before {
+  position: absolute;
+  top: -4.5px;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  background: var(--now);
+  border-radius: 50%;
+  content: "";
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nowline::before {
+    animation: nowline-pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes nowline-pulse {
+    50% {
+      box-shadow: 0 0 0 4px color-mix(in oklab, var(--now) 25%, transparent);
+    }
+  }
+}
