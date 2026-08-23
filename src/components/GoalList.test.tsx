@@ -1,15 +1,20 @@
-import { act, render, screen, within } from '@testing-library/react'
+import { act, cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import App from '../App'
 import { useApp } from '../store'
 
 beforeEach(() => {
-  useApp.setState(useApp.getInitialState(), true)
+  act(() => {
+    useApp.setState(useApp.getInitialState(), true)
+  })
 })
 
 afterEach(() => {
-  useApp.setState(useApp.getInitialState(), true)
+  cleanup()
+  act(() => {
+    useApp.setState(useApp.getInitialState(), true)
+  })
 })
 
 describe('GoalList', () => {

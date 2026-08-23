@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import { openCount, useApp } from '../store'
+import { useApp } from '../store'
+import type { GoalId } from '../types'
 
 export function GoalList() {
   const goals = useApp((state) => state.goals)
@@ -14,10 +15,20 @@ export function GoalList() {
     [goals],
   )
   const openCounts = useMemo(() => {
-    const countState = { ...useApp.getState(), goals, tasks }
-    return new Map(
-      goals.map((goal) => [goal.id, openCount(countState, goal.id)] as const),
+    const counts = new Map<GoalId, number>(
+      goals.map((goal) => [goal.id, 0] as const),
     )
+    for (const task of tasks) {
+      if (task.done) {
+        continue
+      }
+
+      const count = counts.get(task.goalId)
+      if (count !== undefined) {
+        counts.set(task.goalId, count + 1)
+      }
+    }
+    return counts
   }, [goals, tasks])
 
   return (
