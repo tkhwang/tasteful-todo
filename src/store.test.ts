@@ -99,3 +99,136 @@ describe('store 기본', () => {
     expect(useApp.getState().currentDate).toBe(today)
   })
 })
+
+describe('스케줄링 액션', () => {
+  it('scheduleTask는 시작 시간을 스냅하고 기본 60분 블록을 오늘에 추가한다', () => {
+    const before = useApp.getState()
+
+    before.scheduleTask('t-logo', 607)
+
+    const state = useApp.getState()
+    const task = state.tasks.find(({ id }) => id === 't-logo')
+    const addedBlocks = state.blocks.slice(before.blocks.length)
+    expect(task?.blockRefId).toMatch(/^[0-9a-f]{4}$/)
+    expect(addedBlocks).toHaveLength(1)
+    expect(addedBlocks[0]).toMatchObject({
+      date: before.currentDate,
+      startMin: 600,
+      endMin: 660,
+      taskId: 't-logo',
+    })
+  })
+
+  it('scheduleTask를 두 번 호출해도 task의 blockRefId를 재사용하고 블록은 두 개 만든다', () => {
+    useApp.getState().scheduleTask('t-logo', 607)
+    const firstRefId = useApp
+      .getState()
+      .tasks.find(({ id }) => id === 't-logo')?.blockRefId
+
+    useApp.getState().scheduleTask('t-logo', 720, 30)
+
+    const state = useApp.getState()
+    const task = state.tasks.find(({ id }) => id === 't-logo')
+    const taskBlocks = state.blocks.filter(({ taskId }) => taskId === 't-logo')
+    expect(task?.blockRefId).toBe(firstRefId)
+    expect(taskBlocks).toHaveLength(2)
+    expect(taskBlocks[1]).toMatchObject({ startMin: 720, endMin: 750 })
+  })
+
+  it('scheduleTask는 하루 끝에서도 최소 스냅 구간 안으로 클램프한다', () => {
+    useApp.getState().scheduleTask('t-logo', 1438)
+
+    const block = useApp.getState().blocks.find(({ taskId }) => taskId === 't-logo')
+    expect(block).toMatchObject({ startMin: 1425, endMin: 1440 })
+  })
+
+  it('scheduleTask는 없는 task id에 대해 상태를 바꾸지 않는다', () => {
+    const before = useApp.getState()
+
+    before.scheduleTask('missing-task', 600)
+
+    const after = useApp.getState()
+    expect(after.tasks).toBe(before.tasks)
+    expect(after.blocks).toBe(before.blocks)
+  })
+
+  it('createBlock은 goal이 있으면 새 task와 연결된 블록을 만들고 블록 id를 반환한다', () => {
+    const before = useApp.getState()
+
+    const blockId = before.createBlock(1020, 1080, '배포 체크리스트', 'side-project')
+
+    const state = useApp.getState()
+    const task = state.tasks.find(({ text }) => text === '배포 체크리스트')
+    const block = state.blocks.find(({ id }) => id === blockId)
+    expect(task).toMatchObject({
+      goalId: 'side-project',
+      text: '배포 체크리스트',
+      done: false,
+    })
+    expect(task?.blockRefId).toMatch(/^[0-9a-f]{4}$/)
+    expect(block).toMatchObject({
+      date: before.currentDate,
+      startMin: 1020,
+      endMin: 1080,
+      taskId: task?.id,
+    })
+  })
+
+  it('createBlock은 goal이 없으면 task 없이 제목을 가진 free block만 만든다', () => {
+    const before = useApp.getState()
+
+    const blockId = before.createBlock(720, 780, '점심 약속')
+
+    const state = useApp.getState()
+    expect(state.tasks).toBe(before.tasks)
+    expect(state.blocks.find(({ id }) => id === blockId)).toMatchObject({
+      date: before.currentDate,
+      startMin: 720,
+      endMin: 780,
+      title: '점심 약속',
+    })
+  })
+
+  it('createBlock은 시작과 종료를 스냅하고 하루 범위로 클램프한다', () => {
+    const blockId = useApp.getState().createBlock(1438, 1501, '마감')
+
+    const block = useApp.getState().blocks.find(({ id }) => id === blockId)
+    expect(block).toMatchObject({ startMin: 1425, endMin: 1440 })
+  })
+
+  it('moveBlock은 길이를 유지하며 스냅한 시작 시간으로 이동한다', () => {
+    useApp.getState().moveBlock('b-landing', 604)
+
+    const block = useApp.getState().blocks.find(({ id }) => id === 'b-landing')
+    expect(block).toMatchObject({ startMin: 600, endMin: 690 })
+  })
+
+  it('moveBlock은 길이를 유지하며 하루 끝을 넘지 않도록 이동한다', () => {
+    useApp.getState().moveBlock('b-landing', 1438)
+
+    const block = useApp.getState().blocks.find(({ id }) => id === 'b-landing')
+    expect(block).toMatchObject({ startMin: 1350, endMin: 1440 })
+  })
+
+  it('resizeBlock은 종료를 스냅하고 최소 15분을 보장한다', () => {
+    useApp.getState().resizeBlock('b-landing', 605)
+
+    const block = useApp.getState().blocks.find(({ id }) => id === 'b-landing')
+    expect(block).toMatchObject({ startMin: 600, endMin: 615 })
+  })
+
+  it('resizeBlock은 종료를 하루 끝으로 클램프한다', () => {
+    useApp.getState().resizeBlock('b-landing', 1500)
+
+    const block = useApp.getState().blocks.find(({ id }) => id === 'b-landing')
+    expect(block).toMatchObject({ startMin: 600, endMin: 1440 })
+  })
+
+  it('deleteBlock은 블록만 지우고 연결된 task는 남긴다', () => {
+    useApp.getState().deleteBlock('b-landing')
+
+    const state = useApp.getState()
+    expect(state.blocks.some(({ id }) => id === 'b-landing')).toBe(false)
+    expect(state.tasks.some(({ id }) => id === 't-landing')).toBe(true)
+  })
+})
