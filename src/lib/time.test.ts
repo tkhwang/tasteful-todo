@@ -126,12 +126,11 @@ describe('block reference IDs', () => {
     vi.restoreAllMocks()
   })
 
-  it('retries a duplicate prefix and calls randomUUID exactly once per attempt', () => {
+  it('derives one reference ID from each deterministic UUID', () => {
     // Given
     const randomUUID = vi
       .spyOn(crypto, 'randomUUID')
       .mockReturnValueOnce('abcd0000-0000-4000-8000-000000000000')
-      .mockReturnValueOnce('abcd1111-1111-4111-8111-111111111111')
       .mockReturnValueOnce('ef010000-0000-4000-8000-000000000000')
 
     // When
@@ -140,7 +139,21 @@ describe('block reference IDs', () => {
 
     // Then
     expect([firstId, secondId]).toEqual(['abcd', 'ef01'])
-    expect(randomUUID).toHaveBeenCalledTimes(3)
+    expect(randomUUID).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not remember reference IDs between calls', () => {
+    // Given
+    const randomUUID = vi
+      .spyOn(crypto, 'randomUUID')
+      .mockReturnValue('abcd0000-0000-4000-8000-000000000000')
+
+    // When
+    const ids = [newBlockRefId(), newBlockRefId()]
+
+    // Then
+    expect(ids).toEqual(['abcd', 'abcd'])
+    expect(randomUUID).toHaveBeenCalledTimes(2)
   })
 
   it('returns exactly four lowercase alphanumeric characters', () => {

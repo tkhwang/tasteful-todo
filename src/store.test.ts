@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   blocksForDate,
   openCount,
@@ -10,6 +10,10 @@ import {
 
 beforeEach(() => {
   useApp.setState(useApp.getInitialState(), true)
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
 })
 
 describe('store 기본', () => {
@@ -135,6 +139,51 @@ describe('스케줄링 액션', () => {
     expect(taskBlocks[1]).toMatchObject({ startMin: 720, endMin: 750 })
   })
 
+  it('scheduleTask는 스냅한 시작에서 요청한 20분 길이를 그대로 유지한다', () => {
+    useApp.getState().scheduleTask('t-logo', 607, 20)
+
+    const block = useApp.getState().blocks.find(({ taskId }) => taskId === 't-logo')
+    expect(block).toMatchObject({ startMin: 600, endMin: 620 })
+  })
+
+  it('scheduleTask는 음수 시작을 0으로 스냅하고 기본 60분을 적용한다', () => {
+    useApp.getState().scheduleTask('t-logo', -8)
+
+    const block = useApp.getState().blocks.find(({ taskId }) => taskId === 't-logo')
+    expect(block).toMatchObject({ startMin: 0, endMin: 60 })
+  })
+
+  it('scheduleTask는 기존 task reference와 충돌하면 현재 state 기준으로 재시도한다', () => {
+    const randomUUID = vi
+      .spyOn(crypto, 'randomUUID')
+      .mockReturnValueOnce('a1b20000-0000-4000-8000-000000000000')
+      .mockReturnValueOnce('f9e80000-0000-4000-8000-000000000000')
+      .mockReturnValueOnce('b10c0000-0000-4000-8000-000000000000')
+
+    useApp.getState().scheduleTask('t-logo', 600)
+
+    const task = useApp.getState().tasks.find(({ id }) => id === 't-logo')
+    expect(task?.blockRefId).toBe('f9e8')
+    expect(randomUUID).toHaveBeenCalledTimes(3)
+  })
+
+  it('store reset과 mock 복원 뒤에는 이전 scheduling test 상태가 남지 않는다', () => {
+    const randomUUID = vi
+      .spyOn(crypto, 'randomUUID')
+      .mockReturnValueOnce('b7c60000-0000-4000-8000-000000000000')
+      .mockReturnValueOnce('b10c0000-0000-4000-8000-000000000000')
+    const before = useApp.getState()
+
+    before.scheduleTask('t-logo', 600)
+
+    const state = useApp.getState()
+    const task = state.tasks.find(({ id }) => id === 't-logo')
+    expect(before.tasks.find(({ id }) => id === 't-logo')?.blockRefId).toBeUndefined()
+    expect(task?.blockRefId).toBe('b7c6')
+    expect(state.blocks.filter(({ taskId }) => taskId === 't-logo')).toHaveLength(1)
+    expect(randomUUID).toHaveBeenCalledTimes(2)
+  })
+
   it('scheduleTask는 하루 끝에서도 최소 스냅 구간 안으로 클램프한다', () => {
     useApp.getState().scheduleTask('t-logo', 1438)
 
@@ -210,6 +259,23 @@ describe('스케줄링 액션', () => {
     expect(block).toMatchObject({ startMin: 1350, endMin: 1440 })
   })
 
+  it('moveBlock은 non-grid 길이를 유지하는 가장 늦은 스냅 시작점으로 이동한다', () => {
+    useApp.getState().moveBlock('b-run', 1438)
+
+    const block = useApp.getState().blocks.find(({ id }) => id === 'b-run')
+    expect(block).toMatchObject({ startMin: 1395, endMin: 1435 })
+  })
+
+  it('moveBlock은 없는 block이면 Zustand state와 blocks identity를 유지한다', () => {
+    const before = useApp.getState()
+
+    before.moveBlock('missing-block', 600)
+
+    const after = useApp.getState()
+    expect(after).toBe(before)
+    expect(after.blocks).toBe(before.blocks)
+  })
+
   it('resizeBlock은 종료를 스냅하고 최소 15분을 보장한다', () => {
     useApp.getState().resizeBlock('b-landing', 605)
 
@@ -224,11 +290,31 @@ describe('스케줄링 액션', () => {
     expect(block).toMatchObject({ startMin: 600, endMin: 1440 })
   })
 
+  it('resizeBlock은 없는 block이면 Zustand state와 blocks identity를 유지한다', () => {
+    const before = useApp.getState()
+
+    before.resizeBlock('missing-block', 600)
+
+    const after = useApp.getState()
+    expect(after).toBe(before)
+    expect(after.blocks).toBe(before.blocks)
+  })
+
   it('deleteBlock은 블록만 지우고 연결된 task는 남긴다', () => {
     useApp.getState().deleteBlock('b-landing')
 
     const state = useApp.getState()
     expect(state.blocks.some(({ id }) => id === 'b-landing')).toBe(false)
     expect(state.tasks.some(({ id }) => id === 't-landing')).toBe(true)
+  })
+
+  it('deleteBlock은 없는 block이면 Zustand state와 blocks identity를 유지한다', () => {
+    const before = useApp.getState()
+
+    before.deleteBlock('missing-block')
+
+    const after = useApp.getState()
+    expect(after).toBe(before)
+    expect(after.blocks).toBe(before.blocks)
   })
 })

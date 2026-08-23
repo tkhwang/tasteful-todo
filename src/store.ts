@@ -6,6 +6,17 @@ import type { CalendarEvent, Goal, GoalId, Task, TimeBlock } from './types'
 
 export { shiftDate, todayISO } from './lib/date'
 
+function uniqueBlockRefId(tasks: readonly Task[]): string {
+  const usedBlockRefIds = new Set(
+    tasks.flatMap(({ blockRefId }) => (blockRefId === undefined ? [] : [blockRefId])),
+  )
+  let blockRefId = newBlockRefId()
+  while (usedBlockRefIds.has(blockRefId)) {
+    blockRefId = newBlockRefId()
+  }
+  return blockRefId
+}
+
 export interface AppState {
   readonly goals: readonly Goal[]
   readonly tasks: readonly Task[]
@@ -66,11 +77,12 @@ export const useApp = create<AppState>((set) => ({
         return state
       }
 
+      const snappedStartMin = snap(startMin)
       const [blockStartMin, blockEndMin] = clampRange(
-        snap(startMin),
-        snap(startMin + durMin),
+        snappedStartMin,
+        snappedStartMin + durMin,
       )
-      const blockRefId = task.blockRefId ?? newBlockRefId()
+      const blockRefId = task.blockRefId ?? uniqueBlockRefId(state.tasks)
       const block: TimeBlock = {
         id: crypto.randomUUID(),
         date: state.currentDate,
@@ -109,7 +121,7 @@ export const useApp = create<AppState>((set) => ({
         goalId,
         text: title,
         done: false,
-        blockRefId: newBlockRefId(),
+        blockRefId: uniqueBlockRefId(state.tasks),
       }
       const block: TimeBlock = {
         id: blockId,
@@ -124,36 +136,54 @@ export const useApp = create<AppState>((set) => ({
     return blockId
   },
   moveBlock: (blockId, newStartMin) => {
-    set((state) => ({
-      blocks: state.blocks.map((block) => {
-        if (block.id !== blockId) {
-          return block
-        }
+    set((state) => {
+      if (!state.blocks.some(({ id }) => id === blockId)) {
+        return state
+      }
 
-        const duration = block.endMin - block.startMin
-        const candidateStart = Math.min(snap(newStartMin), DAY_MIN - duration)
-        const [blockStartMin, blockEndMin] = clampRange(
-          candidateStart,
-          candidateStart + duration,
-        )
-        return { ...block, startMin: blockStartMin, endMin: blockEndMin }
-      }),
-    }))
+      return {
+        blocks: state.blocks.map((block) => {
+          if (block.id !== blockId) {
+            return block
+          }
+
+          const duration = block.endMin - block.startMin
+          const latestStartMin = Math.floor((DAY_MIN - duration) / SNAP_MIN) * SNAP_MIN
+          const candidateStart = Math.min(snap(newStartMin), latestStartMin)
+          const [blockStartMin, blockEndMin] = clampRange(
+            candidateStart,
+            candidateStart + duration,
+          )
+          return { ...block, startMin: blockStartMin, endMin: blockEndMin }
+        }),
+      }
+    })
   },
   resizeBlock: (blockId, newEndMin) => {
-    set((state) => ({
-      blocks: state.blocks.map((block) => {
-        if (block.id !== blockId) {
-          return block
-        }
+    set((state) => {
+      if (!state.blocks.some(({ id }) => id === blockId)) {
+        return state
+      }
 
-        const [, blockEndMin] = clampRange(block.startMin, snap(newEndMin))
-        return { ...block, endMin: Math.max(block.startMin + SNAP_MIN, blockEndMin) }
-      }),
-    }))
+      return {
+        blocks: state.blocks.map((block) => {
+          if (block.id !== blockId) {
+            return block
+          }
+
+          const [, blockEndMin] = clampRange(block.startMin, snap(newEndMin))
+          return { ...block, endMin: Math.max(block.startMin + SNAP_MIN, blockEndMin) }
+        }),
+      }
+    })
   },
   deleteBlock: (blockId) => {
-    set((state) => ({ blocks: state.blocks.filter(({ id }) => id !== blockId) }))
+    set((state) => {
+      if (!state.blocks.some(({ id }) => id === blockId)) {
+        return state
+      }
+      return { blocks: state.blocks.filter(({ id }) => id !== blockId) }
+    })
   },
   goPrevDay: () => {
     set((state) => ({ currentDate: shiftDate(state.currentDate, -1) }))

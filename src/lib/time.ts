@@ -2,8 +2,6 @@ export const PX_PER_HOUR = 48
 export const SNAP_MIN = 15
 export const DAY_MIN = 1440
 
-const issuedBlockRefIds = new Set<string>()
-
 export function minToY(minutes: number): number {
   return (minutes * PX_PER_HOUR) / 60
 }
@@ -49,12 +47,5 @@ export function fmtPlanned(minutes: number): string {
 }
 
 export function newBlockRefId(): string {
-  let id: string
-
-  do {
-    id = crypto.randomUUID().replaceAll('-', '').slice(0, 4)
-  } while (issuedBlockRefIds.has(id))
-
-  issuedBlockRefIds.add(id)
-  return id
+  return crypto.randomUUID().replaceAll('-', '').slice(0, 4)
 }
