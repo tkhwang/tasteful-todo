@@ -26,12 +26,15 @@ function blockPresentation(block: TimeBlock, task?: Task, goal?: Goal): BlockPre
 }
 
 export default function TimeBlockView({ block, task, goal }: TimeBlockViewProps) {
-  const isFree = block.taskId === undefined
+  const duration = block.endMin - block.startMin
+  const isCompact = duration <= 40
+  const isUltraCompact = duration <= 15
+  const densityClass = `${isCompact ? ' compact' : ''}${isUltraCompact ? ' ultra-compact' : ''}`
   const { title, variantClass } = blockPresentation(block, task, goal)
 
   return (
     <div
-      className={`block ${variantClass}${task?.done === true ? ' past' : ''}`}
+      className={`block ${variantClass}${task?.done === true ? ' past' : ''}${densityClass}`}
       style={{
         top: minToY(block.startMin),
         height: minToY(block.endMin - block.startMin),
@@ -39,9 +42,11 @@ export default function TimeBlockView({ block, task, goal }: TimeBlockViewProps)
       data-block-id={block.id}
       aria-label={`${title}, ${fmtRange(block.startMin, block.endMin)}`}
     >
-      <span className="t mono">{fmtRange(block.startMin, block.endMin)}</span>
+      {!isCompact && (
+        <span className="t mono">{fmtRange(block.startMin, block.endMin)}</span>
+      )}
       <span className="n">{title}</span>
-      {!isFree && <span className="resize" aria-hidden="true" />}
+      <span className="resize" aria-hidden="true" />
     </div>
   )
 }

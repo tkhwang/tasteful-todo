@@ -554,37 +554,39 @@ body {
 }
 
 .block.mine {
-  color: var(--ink);
-  border-left: 3px solid;
+  --block-color: var(--faint);
+  color: var(--block-mine-fg);
+  background: color-mix(in oklab, var(--block-color) 16%, var(--panel));
+  border-left: 3px solid var(--block-color);
 }
 
 .block.mine.ck-block-pine {
-  background: color-mix(in oklab, var(--g-pine) 16%, var(--panel));
+  --block-color: var(--g-pine);
   border-left-color: var(--g-pine);
 }
 
 .block.mine.ck-block-blue {
-  background: color-mix(in oklab, var(--g-blue) 16%, var(--panel));
+  --block-color: var(--g-blue);
   border-left-color: var(--g-blue);
 }
 
 .block.mine.ck-block-amber {
-  background: color-mix(in oklab, var(--g-amber) 16%, var(--panel));
+  --block-color: var(--g-amber);
   border-left-color: var(--g-amber);
 }
 
 .block.mine.ck-block-plum {
-  background: color-mix(in oklab, var(--g-plum) 16%, var(--panel));
+  --block-color: var(--g-plum);
   border-left-color: var(--g-plum);
 }
 
 .block.mine.ck-block-neutral {
-  background: color-mix(in oklab, var(--faint) 16%, var(--panel));
+  --block-color: var(--faint);
   border-left-color: var(--faint);
 }
 
 .block.free {
-  color: var(--timeline-metadata);
+  color: var(--block-free-fg);
   background: color-mix(in oklab, var(--ink) 7%, var(--panel));
   border-left: 3px solid var(--faint);
 }
@@ -595,15 +597,16 @@ body {
   border-color: var(--now);
 }
 
-.block.past {
-  opacity: 0.55;
+.block.mine.past {
+  color: var(--block-past-fg);
+  background: color-mix(in oklab, var(--block-color) 8%, var(--panel));
 }
 
 .block.cal {
   display: flex;
   align-items: flex-start;
   padding: 3px 10px;
-  color: var(--timeline-metadata);
+  color: var(--block-calendar-fg);
   background: repeating-linear-gradient(
     -45deg,
     color-mix(in oklab, var(--ink) 6%, transparent) 0 4px,
@@ -614,6 +617,25 @@ body {
 
 .block.cal .n {
   line-height: 1.25;
+}
+
+.block.compact {
+  padding: 3px 10px;
+  line-height: 1.25;
+}
+
+.block.ultra-compact {
+  display: flex;
+  align-items: center;
+  padding: 0 7px;
+  font-size: 10.5px;
+  line-height: 12px;
+}
+
+.block.ultra-compact .n {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .block .resize {
@@ -628,7 +650,8 @@ body {
   transform: translateX(-50%);
 }
 
-.block.mine:hover .resize {
+.block.mine:hover .resize,
+.block.free:hover .resize {
   opacity: 1;
 }
 

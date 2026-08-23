@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
+import { useNow } from '../hooks/useNow'
 import { todayISO } from '../lib/date'
 import { fmtPlanned, fmtRange, fmtTime, minToY } from '../lib/time'
 import { useApp } from '../store'
@@ -97,7 +98,7 @@ export default function Timeline() {
 }
 
 function NowLine({ date }: { readonly date: string }) {
-  const now = new Date()
+  const now = useNow()
   if (date !== todayISO()) {
     return null
   }
