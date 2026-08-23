@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   DAY_MIN,
   PX_PER_HOUR,
@@ -87,6 +87,7 @@ describe('time formatting', () => {
   it.each([
     [480, '08:00'],
     [690, '11:30'],
+    [1440, '24:00'],
   ])('formats %i minutes as %s', (minutes, expected) => {
     // Given / When
     const formatted = fmtTime(minutes)
@@ -95,12 +96,15 @@ describe('time formatting', () => {
     expect(formatted).toBe(expected)
   })
 
-  it('formats a range with an en dash', () => {
+  it.each([
+    [600, 690, '10:00–11:30'],
+    [1425, 1440, '23:45–24:00'],
+  ])('formats %i–%i with an en dash', (start, end, expected) => {
     // Given / When
-    const formatted = fmtRange(600, 690)
+    const formatted = fmtRange(start, end)
 
     // Then
-    expect(formatted).toBe('10:00–11:30')
+    expect(formatted).toBe(expected)
   })
 
   it.each([
@@ -118,15 +122,32 @@ describe('time formatting', () => {
 })
 
 describe('block reference IDs', () => {
-  it('returns practically unique four-character lowercase alphanumeric IDs', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('retries a duplicate prefix and calls randomUUID exactly once per attempt', () => {
     // Given
-    const sampleSize = 1_000
+    const randomUUID = vi
+      .spyOn(crypto, 'randomUUID')
+      .mockReturnValueOnce('abcd0000-0000-4000-8000-000000000000')
+      .mockReturnValueOnce('abcd1111-1111-4111-8111-111111111111')
+      .mockReturnValueOnce('ef010000-0000-4000-8000-000000000000')
 
     // When
-    const ids = Array.from({ length: sampleSize }, () => newBlockRefId())
+    const firstId = newBlockRefId()
+    const secondId = newBlockRefId()
 
     // Then
-    expect(ids.every((id) => /^[a-z0-9]{4}$/.test(id))).toBe(true)
-    expect(new Set(ids)).toHaveLength(sampleSize)
+    expect([firstId, secondId]).toEqual(['abcd', 'ef01'])
+    expect(randomUUID).toHaveBeenCalledTimes(3)
+  })
+
+  it('returns exactly four lowercase alphanumeric characters', () => {
+    // Given / When
+    const id = newBlockRefId()
+
+    // Then
+    expect(id).toMatch(/^[a-z0-9]{4}$/)
   })
 })
