@@ -1,3 +1,6 @@
+/// <reference types="node" />
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { act, cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -18,6 +21,16 @@ afterEach(() => {
 })
 
 describe('Editor', () => {
+  it('neutral schedule chip은 muted text와 ink 8% background recipe를 사용한다', () => {
+    const stylesheet = readFileSync(resolve('src/styles/app.css'), 'utf8')
+    const neutralChipRule = stylesheet.match(/\.chip-neutral\s*\{(?<declarations>[^}]*)\}/)
+
+    expect(neutralChipRule?.groups?.['declarations']).toMatch(/(?:^|\n)\s*color: var\(--muted\);/)
+    expect(neutralChipRule?.groups?.['declarations']).toContain(
+      'background: color-mix(in oklab, var(--ink) 8%, transparent);',
+    )
+  })
+
   it('선택한 사이드프로젝트의 제목, season, task와 오늘 첫 일정을 표시한다', () => {
     render(<App />)
 

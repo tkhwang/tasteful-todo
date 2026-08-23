@@ -364,7 +364,8 @@ body {
 }
 
 .chip-neutral {
-  --chip-color: var(--muted);
+  color: var(--muted);
+  background: color-mix(in oklab, var(--ink) 8%, transparent);
 }
 
 .subnote {
