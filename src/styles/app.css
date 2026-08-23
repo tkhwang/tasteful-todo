@@ -56,7 +56,7 @@ body {
 
 .crumb,
 .filename {
-  color: var(--muted);
+  color: var(--ink);
 }
 
 .crumb {

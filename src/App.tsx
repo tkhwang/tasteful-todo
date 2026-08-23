@@ -5,9 +5,9 @@ export default function App() {
     <div className="app">
       <Titlebar />
       <div className="columns">
-        <aside className="goals" />
+        <aside className="goals" aria-label="목표 목록" />
         <main className="editor" />
-        <aside className="timeline" />
+        <aside className="timeline" aria-label="하루 타임라인" />
       </div>
     </div>
   )
