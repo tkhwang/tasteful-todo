@@ -80,6 +80,7 @@ export default function Timeline() {
                 top: minToY(event.startMin),
                 height: minToY(event.endMin - event.startMin),
               }}
+              role="group"
               aria-label={`${event.title}, ${fmtRange(event.startMin, event.endMin)}`}
             >
               <span className="n">{event.title}</span>

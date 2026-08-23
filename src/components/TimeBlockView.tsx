@@ -40,6 +40,7 @@ export default function TimeBlockView({ block, task, goal }: TimeBlockViewProps)
         height: minToY(block.endMin - block.startMin),
       }}
       data-block-id={block.id}
+      role="group"
       aria-label={`${title}, ${fmtRange(block.startMin, block.endMin)}`}
     >
       {!isCompact && (

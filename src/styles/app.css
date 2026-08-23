@@ -51,7 +51,9 @@ body {
 }
 
 .titlebar-right {
+  align-self: stretch;
   justify-content: flex-end;
+  border-left: 1px solid var(--line);
 }
 
 .crumb,
@@ -411,11 +413,6 @@ body {
 }
 
 /* Timeline and date navigation */
-.titlebar-right {
-  align-self: stretch;
-  border-left: 1px solid var(--line);
-}
-
 .datenav {
   display: flex;
   align-items: center;
@@ -430,7 +427,6 @@ body {
   font: inherit;
   background: transparent;
   cursor: pointer;
-  -webkit-app-region: no-drag;
 }
 
 .chev {

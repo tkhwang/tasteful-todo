@@ -5,6 +5,7 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import App from '../App'
+import { shiftDate } from '../lib/date'
 import { useApp } from '../store'
 
 beforeEach(() => {
@@ -114,6 +115,29 @@ describe('Editor', () => {
 
     expect(screen.getByText('오늘 09:00–09:30')).toBeVisible()
     expect(screen.queryByText('오늘 13:00–14:00')).not.toBeInTheDocument()
+  })
+
+  it('오늘이 아닌 날짜를 선택하면 일정 chip에 선택 날짜를 표시한다', () => {
+    const state = useApp.getState()
+    const selectedDate = shiftDate(state.currentDate, 1)
+    const [year, month, day] = selectedDate.split('-').map(Number)
+    if (year === undefined || month === undefined || day === undefined) {
+      throw new TypeError(`Invalid selected date: ${selectedDate}`)
+    }
+
+    act(() => {
+      useApp.setState({
+        currentDate: selectedDate,
+        blocks: state.blocks.map((block) =>
+          block.taskId === 't-landing' ? { ...block, date: selectedDate } : block,
+        ),
+      })
+    })
+
+    render(<App />)
+
+    expect(screen.getByText(`${month}월 ${day}일 10:00–11:30`)).toBeVisible()
+    expect(screen.queryByText('오늘 10:00–11:30')).not.toBeInTheDocument()
   })
 
   it('native checkbox로 task 완료 상태와 done 표현을 전환한다', async () => {

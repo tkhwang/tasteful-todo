@@ -124,6 +124,7 @@ describe('timeline', () => {
 
     const event = screen.getByText('주간 리뷰 콜').closest('.block.cal')
 
+    expect(event).toHaveAttribute('role', 'group')
     expect(event).toHaveStyle({ height: '24px' })
     expect(event?.querySelector('.n')).toHaveTextContent('주간 리뷰 콜')
     expect(event?.querySelector('.t')).not.toBeInTheDocument()
@@ -143,6 +144,7 @@ describe('timeline', () => {
       render(<TimeBlockView block={block} goal={seededGoal} task={seededTask} />)
 
       const view = screen.getByText(seededTask.text).closest('.block')
+      expect(view).toHaveAttribute('role', 'group')
       expect(view).toHaveClass('compact')
       expect(view).toHaveStyle({ height: `${minToY(duration)}px` })
       expect(view).toHaveAccessibleName(`${seededTask.text}, 10:00–10:${String(duration).padStart(2, '0')}`)
@@ -229,6 +231,11 @@ describe('timeline', () => {
 })
 
 describe('titlebar date navigation', () => {
+  it('keeps titlebar layout in one rule and relies on Tauri drag regions', () => {
+    expect(appStyles.match(/\.titlebar-right\s*\{/g)).toHaveLength(1)
+    expect(appStyles).not.toContain('-webkit-app-region')
+  })
+
   it('shows the selected goal filename and keeps only noninteractive regions draggable', () => {
     const { container } = render(<Titlebar />)
 

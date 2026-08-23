@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { todayISO } from '../lib/date'
 import { fmtRange } from '../lib/time'
 import { useApp } from '../store'
 import type { Goal, Task, TimeBlock } from '../types'
@@ -7,6 +8,15 @@ interface TaskRowProps {
   readonly task: Task
   readonly goal: Goal
   readonly todayBlock: TimeBlock | undefined
+}
+
+function scheduleDateLabel(date: string): string {
+  if (date === todayISO()) {
+    return '오늘'
+  }
+
+  const localDate = new Date(`${date}T00:00:00`)
+  return `${localDate.getMonth() + 1}월 ${localDate.getDate()}일`
 }
 
 export const TaskRow = memo(function TaskRow({ task, goal, todayBlock }: TaskRowProps) {
@@ -30,7 +40,8 @@ export const TaskRow = memo(function TaskRow({ task, goal, todayBlock }: TaskRow
         <span className="task-text">{task.text}</span>
         {todayBlock === undefined ? null : (
           <span className={`sched-chip chip-${goal.colorKey}`}>
-            오늘 {fmtRange(todayBlock.startMin, todayBlock.endMin)}
+            {scheduleDateLabel(todayBlock.date)}{' '}
+            {fmtRange(todayBlock.startMin, todayBlock.endMin)}
           </span>
         )}
         {task.blockRefId === undefined ? null : (
