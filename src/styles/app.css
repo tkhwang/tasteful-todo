@@ -116,7 +116,7 @@ body {
   padding: 8px 10px;
   color: var(--ink);
   border-radius: 8px;
-  cursor: default;
+  cursor: pointer;
 }
 
 .goal:hover {
@@ -142,23 +142,23 @@ body {
   border-radius: 50%;
 }
 
-.dot.ck-pine {
+.ck-pine {
   background: var(--g-pine);
 }
 
-.dot.ck-blue {
+.ck-blue {
   background: var(--g-blue);
 }
 
-.dot.ck-amber {
+.ck-amber {
   background: var(--g-amber);
 }
 
-.dot.ck-plum {
+.ck-plum {
   background: var(--g-plum);
 }
 
-.dot.ck-neutral {
+.ck-neutral {
   background: var(--faint);
 }
 
@@ -191,7 +191,11 @@ body {
   border-radius: 8px;
 }
 
-.add-goal:hover {
+.add-goal:disabled {
+  cursor: not-allowed;
+}
+
+.add-goal:not(:disabled):hover {
   color: var(--ink);
   background: color-mix(in oklab, var(--ink) 5%, transparent);
 }
