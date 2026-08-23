@@ -24,6 +24,23 @@ describe('store 기본', () => {
     expect(state.currentDate).toBe(todayISO())
   })
 
+  it('selectGoal은 존재하지 않는 goal id를 무시한다', () => {
+    const selectedGoalId = useApp.getState().selectedGoalId
+
+    useApp.getState().selectGoal('missing-goal')
+
+    expect(useApp.getState().selectedGoalId).toBe(selectedGoalId)
+  })
+
+  it('addTask는 존재하지 않는 goal에 task를 만들지 않고 빈 id를 반환한다', () => {
+    const tasks = useApp.getState().tasks
+
+    const taskId = useApp.getState().addTask('missing-goal', '고아 task')
+
+    expect(taskId).toBe('')
+    expect(useApp.getState().tasks).toBe(tasks)
+  })
+
   it('selectGoal이 선택을 바꾼다', () => {
     useApp.getState().selectGoal('job')
 
@@ -221,6 +238,17 @@ describe('스케줄링 액션', () => {
       endMin: 1080,
       taskId: task?.id,
     })
+  })
+
+  it('createBlock은 존재하지 않는 goal에 task나 block을 만들지 않고 빈 id를 반환한다', () => {
+    const before = useApp.getState()
+
+    const blockId = before.createBlock(720, 780, '고아 block', 'missing-goal')
+
+    const after = useApp.getState()
+    expect(blockId).toBe('')
+    expect(after.tasks).toBe(before.tasks)
+    expect(after.blocks).toBe(before.blocks)
   })
 
   it('createBlock은 goal이 없으면 task 없이 제목을 가진 free block만 만든다', () => {

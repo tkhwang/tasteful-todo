@@ -1,16 +1,15 @@
+import { memo } from 'react'
 import { fmtRange } from '../lib/time'
-import { blocksForDate, useApp } from '../store'
-import type { Task } from '../types'
+import { useApp } from '../store'
+import type { Goal, Task, TimeBlock } from '../types'
 
 interface TaskRowProps {
   readonly task: Task
+  readonly goal: Goal
+  readonly todayBlock: TimeBlock | undefined
 }
 
-export function TaskRow({ task }: TaskRowProps) {
-  const goal = useApp((state) => state.goals.find(({ id }) => id === task.goalId))
-  const todayBlock = useApp((state) =>
-    blocksForDate(state, state.currentDate).find(({ taskId }) => taskId === task.id),
-  )
+export const TaskRow = memo(function TaskRow({ task, goal, todayBlock }: TaskRowProps) {
   const toggleTask = useApp((state) => state.toggleTask)
 
   return (
@@ -29,11 +28,11 @@ export function TaskRow({ task }: TaskRowProps) {
       />
       <div className="task-body">
         <span className="task-text">{task.text}</span>
-        {todayBlock !== undefined && goal !== undefined ? (
+        {todayBlock === undefined ? null : (
           <span className={`sched-chip chip-${goal.colorKey}`}>
             오늘 {fmtRange(todayBlock.startMin, todayBlock.endMin)}
           </span>
-        ) : null}
+        )}
         {task.blockRefId === undefined ? null : (
           <span className="blockid">^{task.blockRefId}</span>
         )}
@@ -48,4 +47,4 @@ export function TaskRow({ task }: TaskRowProps) {
       </div>
     </div>
   )
-}
+})

@@ -231,13 +231,13 @@ body {
 
 .season {
   margin: 0 0 26px;
-  color: var(--muted);
+  color: var(--text-secondary);
   font-size: 13.5px;
 }
 
 .doc h2 {
   margin: 0 0 10px;
-  color: var(--faint);
+  color: var(--text-secondary);
   font-family: "IBM Plex Mono", monospace;
   font-size: 12px;
   font-weight: 600;
@@ -258,7 +258,7 @@ body {
   position: absolute;
   top: 8px;
   left: -20px;
-  color: var(--faint);
+  color: var(--text-secondary);
   font-size: 13px;
   letter-spacing: -1px;
   cursor: grab;
@@ -283,7 +283,7 @@ body {
   padding: 0;
   appearance: none;
   background: transparent;
-  border: 1.5px solid var(--faint);
+  border: 1.5px solid var(--control-border);
   border-radius: 5px;
   cursor: pointer;
 }
@@ -320,14 +320,14 @@ body {
 }
 
 .task.done .task-text {
-  color: var(--muted);
+  color: var(--text-secondary);
   text-decoration: line-through;
   text-decoration-color: var(--faint);
 }
 
 .blockid {
   margin-left: 8px;
-  color: var(--faint);
+  color: var(--text-secondary);
   font-family: "IBM Plex Mono", monospace;
   font-size: 11px;
 }
@@ -338,7 +338,7 @@ body {
   gap: 5px;
   margin-left: 8px;
   padding: 1px 8px;
-  color: var(--chip-color);
+  color: var(--chip-foreground);
   font-family: "IBM Plex Mono", monospace;
   font-size: 11px;
   font-variant-numeric: tabular-nums;
@@ -349,35 +349,40 @@ body {
 
 .chip-pine {
   --chip-color: var(--g-pine);
+  --chip-foreground: var(--chip-pine-fg);
 }
 
 .chip-blue {
   --chip-color: var(--g-blue);
+  --chip-foreground: var(--chip-blue-fg);
 }
 
 .chip-amber {
   --chip-color: var(--g-amber);
+  --chip-foreground: var(--chip-amber-fg);
 }
 
 .chip-plum {
   --chip-color: var(--g-plum);
+  --chip-foreground: var(--chip-plum-fg);
 }
 
 .chip-neutral {
-  color: var(--muted);
+  --chip-foreground: var(--chip-neutral-fg);
+  color: var(--chip-foreground);
   background: color-mix(in oklab, var(--ink) 8%, transparent);
 }
 
 .subnote {
   margin: 2px 0 0 2px;
   padding-left: 14px;
-  color: var(--muted);
+  color: var(--text-secondary);
   font-size: 13.5px;
   border-left: 2px solid var(--line);
 }
 
 .subnote .md {
-  color: var(--faint);
+  color: var(--text-secondary);
   font-family: "IBM Plex Mono", monospace;
   font-size: 12px;
 }
@@ -393,9 +398,14 @@ body {
 }
 
 .add-task::placeholder {
-  color: var(--faint);
+  color: var(--text-placeholder);
 }
 
 .add-task:focus-visible {
   box-shadow: inset 0 -1px var(--accent);
+}
+
+.editor-status {
+  margin: 0;
+  color: var(--text-secondary);
 }

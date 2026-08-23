@@ -12,6 +12,14 @@
   --g-blue: #3F5E8C;
   --g-amber: #A9761F;
   --g-plum: #7A4A6D;
+  --text-secondary: #747166;
+  --text-placeholder: #747166;
+  --control-border: #918D7F;
+  --chip-pine-fg: #2E6B4C;
+  --chip-blue-fg: #3F5E8C;
+  --chip-amber-fg: #8C6118;
+  --chip-plum-fg: #7A4A6D;
+  --chip-neutral-fg: #69665B;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,5 +37,13 @@
     --g-blue: #7C9CC9;
     --g-amber: #C99A4B;
     --g-plum: #B385A6;
+    --text-secondary: #9E9C90;
+    --text-placeholder: #9E9C90;
+    --control-border: #777565;
+    --chip-pine-fg: #6FAE8C;
+    --chip-blue-fg: #7C9CC9;
+    --chip-amber-fg: #C99A4B;
+    --chip-plum-fg: #BD91B0;
+    --chip-neutral-fg: #9E9C90;
   }
 }

@@ -1,7 +1,9 @@
+import { Profiler } from 'react'
 import { act, cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import App from '../App'
+import { GoalList } from './GoalList'
 import { useApp } from '../store'
 
 beforeEach(() => {
@@ -67,6 +69,28 @@ describe('GoalList', () => {
 
     expect(within(sideProject).getByText('2')).toBeVisible()
     expect(sideProject).toHaveAccessibleName('사이드프로젝트, 미완료 task 2개')
+  })
+
+  it('task text만 수정하면 GoalList를 다시 렌더하지 않는다', () => {
+    let updateCount = 0
+    render(
+      <Profiler
+        id="goal-list"
+        onRender={(_id, phase) => {
+          if (phase === 'update') {
+            updateCount += 1
+          }
+        }}
+      >
+        <GoalList />
+      </Profiler>,
+    )
+
+    act(() => {
+      useApp.getState().updateTaskText('t-logo', '로고 최종안 검토')
+    })
+
+    expect(updateCount).toBe(0)
   })
 
   it('새 목표 action은 M2까지 접근 가능하지만 비활성화되어 있다', () => {

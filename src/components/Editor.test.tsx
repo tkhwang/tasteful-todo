@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { act, cleanup, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import App from '../App'
@@ -25,7 +25,9 @@ describe('Editor', () => {
     const stylesheet = readFileSync(resolve('src/styles/app.css'), 'utf8')
     const neutralChipRule = stylesheet.match(/\.chip-neutral\s*\{(?<declarations>[^}]*)\}/)
 
-    expect(neutralChipRule?.groups?.['declarations']).toMatch(/(?:^|\n)\s*color: var\(--muted\);/)
+    expect(neutralChipRule?.groups?.['declarations']).toMatch(
+      /(?:^|\n)\s*--chip-foreground: var\(--chip-neutral-fg\);/,
+    )
     expect(neutralChipRule?.groups?.['declarations']).toContain(
       'background: color-mix(in oklab, var(--ink) 8%, transparent);',
     )
@@ -45,6 +47,73 @@ describe('Editor', () => {
     expect(within(editor).getByText('Tauri 프로젝트 셋업')).toBeVisible()
     expect(within(editor).getByText('오늘 10:00–11:30')).toBeVisible()
     expect(within(editor).getByText('^a1b2')).toBeVisible()
+  })
+
+  it('WebKit 조합 확정 Enter는 task를 추가하지 않는다', () => {
+    render(<App />)
+    const input = screen.getByPlaceholderText('task 추가')
+    const taskCount = useApp.getState().tasks.length
+
+    fireEvent.change(input, { target: { value: '조합 중인 task' } })
+    fireEvent.keyDown(input, { key: 'Enter', keyCode: 229, which: 229 })
+
+    expect(useApp.getState().tasks).toHaveLength(taskCount)
+    expect(input).toHaveValue('조합 중인 task')
+  })
+
+  it('goal을 바꾸면 이전 goal에서 작성 중인 draft를 버린다', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const input = screen.getByPlaceholderText('task 추가')
+    const taskCount = useApp.getState().tasks.length
+
+    await user.type(input, '사이드프로젝트 draft')
+    await user.click(screen.getByRole('button', { name: /이직 준비/ }))
+    await user.keyboard('{Enter}')
+
+    expect(screen.getByPlaceholderText('task 추가')).toHaveValue('')
+    expect(useApp.getState().tasks).toHaveLength(taskCount)
+  })
+
+  it('외부 상태가 깨져 선택 goal이 없으면 명시적인 상태를 표시한다', () => {
+    act(() => {
+      useApp.setState({ selectedGoalId: 'missing-goal' })
+    })
+
+    render(<App />)
+
+    expect(screen.getByRole('status')).toHaveTextContent('선택한 목표를 찾을 수 없습니다.')
+  })
+
+  it('같은 날 block 순서와 무관하게 가장 이른 일정을 표시한다', () => {
+    const state = useApp.getState()
+    const otherBlocks = state.blocks.filter(({ taskId }) => taskId !== 't-landing')
+    act(() => {
+      useApp.setState({
+        blocks: [
+          ...otherBlocks,
+          {
+            id: 'b-landing-late',
+            date: state.currentDate,
+            startMin: 13 * 60,
+            endMin: 14 * 60,
+            taskId: 't-landing',
+          },
+          {
+            id: 'b-landing-early',
+            date: state.currentDate,
+            startMin: 9 * 60,
+            endMin: 9 * 60 + 30,
+            taskId: 't-landing',
+          },
+        ],
+      })
+    })
+
+    render(<App />)
+
+    expect(screen.getByText('오늘 09:00–09:30')).toBeVisible()
+    expect(screen.queryByText('오늘 13:00–14:00')).not.toBeInTheDocument()
   })
 
   it('native checkbox로 task 완료 상태와 done 표현을 전환한다', async () => {

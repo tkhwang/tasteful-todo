@@ -43,7 +43,7 @@ export interface AppState {
   readonly goToday: () => void
 }
 
-export const useApp = create<AppState>((set) => ({
+export const useApp = create<AppState>((set, get) => ({
   goals: mockGoals,
   tasks: mockTasks,
   blocks: mockBlocks,
@@ -51,7 +51,9 @@ export const useApp = create<AppState>((set) => ({
   selectedGoalId: 'side-project',
   currentDate: todayISO(),
   selectGoal: (id) => {
-    set({ selectedGoalId: id })
+    set((state) =>
+      state.goals.some((goal) => goal.id === id) ? { selectedGoalId: id } : state,
+    )
   },
   toggleTask: (taskId) => {
     set((state) => ({
@@ -61,6 +63,10 @@ export const useApp = create<AppState>((set) => ({
     }))
   },
   addTask: (goalId, text) => {
+    if (!get().goals.some((goal) => goal.id === goalId)) {
+      return ''
+    }
+
     const id = crypto.randomUUID()
     set((state) => ({ tasks: [...state.tasks, { id, goalId, text, done: false }] }))
     return id
@@ -100,6 +106,10 @@ export const useApp = create<AppState>((set) => ({
     })
   },
   createBlock: (startMin, endMin, title, goalId) => {
+    if (goalId !== undefined && !get().goals.some((goal) => goal.id === goalId)) {
+      return ''
+    }
+
     const blockId = crypto.randomUUID()
     const [blockStartMin, blockEndMin] = clampRange(snap(startMin), snap(endMin))
 
@@ -200,7 +210,10 @@ export function openCount(state: AppState, goalId: GoalId): number {
   return state.tasks.filter((task) => task.goalId === goalId && !task.done).length
 }
 
-export function blocksForDate(state: AppState, date: string): readonly TimeBlock[] {
+export function blocksForDate(
+  state: Pick<AppState, 'blocks'>,
+  date: string,
+): readonly TimeBlock[] {
   return state.blocks.filter((block) => block.date === date)
 }
 
