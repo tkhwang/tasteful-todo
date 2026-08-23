@@ -1,0 +1,207 @@
+/// <reference types="node" />
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import App from '../App'
+import { shiftDate } from '../lib/date'
+import { useApp } from '../store'
+
+beforeEach(() => {
+  act(() => {
+    useApp.setState(useApp.getInitialState(), true)
+  })
+})
+
+afterEach(() => {
+  cleanup()
+  act(() => {
+    useApp.setState(useApp.getInitialState(), true)
+  })
+})
+
+describe('Editor', () => {
+  it('neutral schedule chip은 muted text와 ink 8% background recipe를 사용한다', () => {
+    const stylesheet = readFileSync(resolve('src/styles/app.css'), 'utf8')
+    const neutralChipRule = stylesheet.match(/\.chip-neutral\s*\{(?<declarations>[^}]*)\}/)
+
+    expect(neutralChipRule?.groups?.['declarations']).toMatch(
+      /(?:^|\n)\s*--chip-foreground: var\(--chip-neutral-fg\);/,
+    )
+    expect(neutralChipRule?.groups?.['declarations']).toContain(
+      'background: color-mix(in oklab, var(--ink) 8%, transparent);',
+    )
+  })
+
+  it('선택한 사이드프로젝트의 제목, season, task와 오늘 첫 일정을 표시한다', () => {
+    render(<App />)
+
+    const editor = screen.getByRole('main', { name: 'Task 편집기' })
+    expect(within(editor).getByRole('heading', { level: 1 })).toHaveTextContent(
+      '사이드프로젝트',
+    )
+    expect(editor).toHaveTextContent('2026 Q3 — tasteful-todo MVP를 출시한다.')
+    expect(within(editor).getByText('랜딩페이지 초안')).toBeVisible()
+    expect(within(editor).getByText('로고 시안 검토')).toBeVisible()
+    expect(within(editor).getByText('도메인 구매')).toBeVisible()
+    expect(within(editor).getByText('Tauri 프로젝트 셋업')).toBeVisible()
+    expect(within(editor).getByText('오늘 10:00–11:30')).toBeVisible()
+    expect(within(editor).getByText('^a1b2')).toBeVisible()
+  })
+
+  it('WebKit 조합 확정 Enter는 task를 추가하지 않는다', () => {
+    render(<App />)
+    const input = screen.getByPlaceholderText('task 추가')
+    const taskCount = useApp.getState().tasks.length
+
+    fireEvent.change(input, { target: { value: '조합 중인 task' } })
+    fireEvent.keyDown(input, { key: 'Enter', keyCode: 229, which: 229 })
+
+    expect(useApp.getState().tasks).toHaveLength(taskCount)
+    expect(input).toHaveValue('조합 중인 task')
+  })
+
+  it('goal을 바꾸면 이전 goal에서 작성 중인 draft를 버린다', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const input = screen.getByPlaceholderText('task 추가')
+    const taskCount = useApp.getState().tasks.length
+
+    await user.type(input, '사이드프로젝트 draft')
+    await user.click(screen.getByRole('button', { name: /이직 준비/ }))
+    await user.keyboard('{Enter}')
+
+    expect(screen.getByPlaceholderText('task 추가')).toHaveValue('')
+    expect(useApp.getState().tasks).toHaveLength(taskCount)
+  })
+
+  it('외부 상태가 깨져 선택 goal이 없으면 명시적인 상태를 표시한다', () => {
+    act(() => {
+      useApp.setState({ selectedGoalId: 'missing-goal' })
+    })
+
+    render(<App />)
+
+    expect(screen.getByRole('status')).toHaveTextContent('선택한 목표를 찾을 수 없습니다.')
+  })
+
+  it('같은 날 block 순서와 무관하게 가장 이른 일정을 표시한다', () => {
+    const state = useApp.getState()
+    const otherBlocks = state.blocks.filter(({ taskId }) => taskId !== 't-landing')
+    act(() => {
+      useApp.setState({
+        blocks: [
+          ...otherBlocks,
+          {
+            id: 'b-landing-late',
+            date: state.currentDate,
+            startMin: 13 * 60,
+            endMin: 14 * 60,
+            taskId: 't-landing',
+          },
+          {
+            id: 'b-landing-early',
+            date: state.currentDate,
+            startMin: 9 * 60,
+            endMin: 9 * 60 + 30,
+            taskId: 't-landing',
+          },
+        ],
+      })
+    })
+
+    render(<App />)
+
+    expect(screen.getByText('오늘 09:00–09:30')).toBeVisible()
+    expect(screen.queryByText('오늘 13:00–14:00')).not.toBeInTheDocument()
+  })
+
+  it('오늘이 아닌 날짜를 선택하면 일정 chip에 선택 날짜를 표시한다', () => {
+    const state = useApp.getState()
+    const selectedDate = shiftDate(state.currentDate, 1)
+    const [year, month, day] = selectedDate.split('-').map(Number)
+    if (year === undefined || month === undefined || day === undefined) {
+      throw new TypeError(`Invalid selected date: ${selectedDate}`)
+    }
+
+    act(() => {
+      useApp.setState({
+        currentDate: selectedDate,
+        blocks: state.blocks.map((block) =>
+          block.taskId === 't-landing' ? { ...block, date: selectedDate } : block,
+        ),
+      })
+    })
+
+    render(<App />)
+
+    expect(screen.getByText(`${month}월 ${day}일 10:00–11:30`)).toBeVisible()
+    expect(screen.queryByText('오늘 10:00–11:30')).not.toBeInTheDocument()
+  })
+
+  it('native checkbox로 task 완료 상태와 done 표현을 전환한다', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    const checkbox = screen.getByRole('checkbox', { name: '로고 시안 검토 완료' })
+    const taskRow = checkbox.closest('.task')
+    expect(taskRow).not.toBeNull()
+    expect(checkbox).not.toBeChecked()
+    expect(taskRow).not.toHaveClass('done')
+
+    await user.click(checkbox)
+
+    expect(useApp.getState().tasks.find(({ id }) => id === 't-logo')?.done).toBe(true)
+    expect(checkbox).toBeChecked()
+    expect(taskRow).toHaveClass('done')
+  })
+
+  it('trim한 task를 Enter로 추가하고 입력을 비운다', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const input = screen.getByPlaceholderText('task 추가')
+
+    await user.type(input, '  릴리즈 노트 작성  {Enter}')
+
+    expect(screen.getByText('릴리즈 노트 작성')).toBeVisible()
+    expect(input).toHaveValue('')
+    expect(useApp.getState().tasks.at(-1)).toMatchObject({
+      goalId: 'side-project',
+      text: '릴리즈 노트 작성',
+      done: false,
+    })
+  })
+
+  it('공백만 입력하고 Enter를 누르면 task를 추가하지 않는다', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const input = screen.getByPlaceholderText('task 추가')
+    const taskCount = useApp.getState().tasks.length
+
+    await user.type(input, '   {Enter}')
+
+    expect(useApp.getState().tasks).toHaveLength(taskCount)
+    expect(input).toHaveValue('   ')
+  })
+
+  it('goal 선택을 바꾸면 해당 goal의 문서와 task로 반응한다', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /이직 준비/ }))
+
+    const editor = screen.getByRole('main', { name: 'Task 편집기' })
+    expect(within(editor).getByRole('heading', { level: 1 })).toHaveTextContent('이직 준비')
+    expect(within(editor).getByText('이력서 다듬기')).toBeVisible()
+    expect(within(editor).queryByText('랜딩페이지 초안')).not.toBeInTheDocument()
+  })
+
+  it('완료 task는 처음부터 checked와 done 상태로 표시한다', () => {
+    render(<App />)
+
+    const checkbox = screen.getByRole('checkbox', { name: '도메인 구매 완료' })
+    expect(checkbox).toBeChecked()
+    expect(checkbox.closest('.task')).toHaveClass('done')
+  })
+})

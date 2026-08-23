@@ -1,2 +1,37 @@
-.omc/
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+coverage/
+*.tsbuildinfo
+
+# Tauri / Rust
+**/target/
+src-tauri/gen/
+
+# Logs
+*.log
+pnpm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Local agent state
+.claude/
+.omc/
+.omx/
+.scratch/
+.superpowers/
