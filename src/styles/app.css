@@ -82,3 +82,128 @@ body {
 .display {
   font-family: "Hahmlet", serif;
 }
+
+.goals {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 12px;
+  background: var(--panel-2);
+  border-right: 1px solid var(--line);
+}
+
+.col-label {
+  padding: 0 10px 10px;
+  color: var(--faint);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.goal,
+.add-goal {
+  width: 100%;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  background: transparent;
+}
+
+.goal {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  color: var(--ink);
+  border-radius: 8px;
+  cursor: default;
+}
+
+.goal:hover {
+  background: color-mix(in oklab, var(--ink) 5%, transparent);
+}
+
+.goal.selected {
+  background: color-mix(in oklab, var(--accent) 13%, transparent);
+}
+
+.goal.selected .goal-name {
+  font-weight: 600;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 3px;
+}
+
+.dot.round {
+  border-radius: 50%;
+}
+
+.dot.ck-pine {
+  background: var(--g-pine);
+}
+
+.dot.ck-blue {
+  background: var(--g-blue);
+}
+
+.dot.ck-amber {
+  background: var(--g-amber);
+}
+
+.dot.ck-plum {
+  background: var(--g-plum);
+}
+
+.dot.ck-neutral {
+  background: var(--faint);
+}
+
+.goal-name {
+  flex: 1;
+  overflow: hidden;
+  font-size: 13.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  padding: 1px 7px;
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  background: color-mix(in oklab, var(--ink) 6%, transparent);
+  border-radius: 10px;
+}
+
+.add-goal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding: 8px 10px;
+  color: var(--muted);
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+.add-goal:hover {
+  color: var(--ink);
+  background: color-mix(in oklab, var(--ink) 5%, transparent);
+}
+
+.add-goal .plus {
+  color: var(--faint);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.goal:focus-visible,
+.add-goal:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
