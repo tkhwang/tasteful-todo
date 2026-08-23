@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import App from '../App'
@@ -47,6 +47,21 @@ describe('GoalList', () => {
     expect(job).toHaveClass('selected')
     expect(job).toHaveAttribute('aria-pressed', 'true')
     expect(sideProject).not.toHaveClass('selected')
+    expect(sideProject).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('task 완료 상태가 바뀌면 open-count badge와 accessible label을 갱신한다', () => {
+    render(<App />)
+    const sideProject = screen.getByRole('button', {
+      name: '사이드프로젝트, 미완료 task 3개',
+    })
+
+    act(() => {
+      useApp.getState().toggleTask('t-logo')
+    })
+
+    expect(within(sideProject).getByText('2')).toBeVisible()
+    expect(sideProject).toHaveAccessibleName('사이드프로젝트, 미완료 task 2개')
   })
 
   it('새 목표 action은 M2까지 접근 가능하지만 비활성화되어 있다', () => {

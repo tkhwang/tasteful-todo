@@ -1,29 +1,37 @@
-import { useShallow } from 'zustand/react/shallow'
+import { useMemo } from 'react'
 import { openCount, useApp } from '../store'
 
 export function GoalList() {
   const goals = useApp((state) => state.goals)
+  const tasks = useApp((state) => state.tasks)
   const selectedGoalId = useApp((state) => state.selectedGoalId)
   const selectGoal = useApp((state) => state.selectGoal)
-  const openCounts = useApp(
-    useShallow((state) => state.goals.map((goal) => openCount(state, goal.id))),
+  const orderedGoals = useMemo(
+    () => [
+      ...goals.filter((goal) => goal.isInbox === true),
+      ...goals.filter((goal) => goal.isInbox !== true),
+    ],
+    [goals],
   )
-  const orderedGoals = [
-    ...goals.filter((goal) => goal.isInbox === true),
-    ...goals.filter((goal) => goal.isInbox !== true),
-  ]
+  const openCounts = useMemo(() => {
+    const countState = { ...useApp.getState(), goals, tasks }
+    return new Map(
+      goals.map((goal) => [goal.id, openCount(countState, goal.id)] as const),
+    )
+  }, [goals, tasks])
 
   return (
     <aside className="goals" aria-label="목표 목록">
       <p className="col-label">Goals</p>
       {orderedGoals.map((goal) => {
-        const count = openCounts[goals.indexOf(goal)] ?? 0
+        const count = openCounts.get(goal.id) ?? 0
         const isSelected = goal.id === selectedGoalId
 
         return (
           <button
             type="button"
             className={`goal${isSelected ? ' selected' : ''}`}
+            aria-label={`${goal.name}, 미완료 task ${count}개`}
             aria-pressed={isSelected}
             key={goal.id}
             onClick={() => {
@@ -35,7 +43,9 @@ export function GoalList() {
               aria-hidden="true"
             />
             <span className="goal-name">{goal.name}</span>
-            <span className="count">{count}</span>
+            <span className="count" aria-hidden="true">
+              {count}
+            </span>
           </button>
         )
       })}
