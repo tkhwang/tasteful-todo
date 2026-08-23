@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   blocksForDate,
+  UnknownGoalError,
   openCount,
   plannedMinutes,
   shiftDate,
@@ -24,21 +25,40 @@ describe('store 기본', () => {
     expect(state.currentDate).toBe(todayISO())
   })
 
-  it('selectGoal은 존재하지 않는 goal id를 무시한다', () => {
-    const selectedGoalId = useApp.getState().selectedGoalId
+  it('selectGoal은 존재하지 않는 goal id에 typed error를 던지고 상태를 보존한다', () => {
+    const before = useApp.getState()
+    let thrown: unknown
 
-    useApp.getState().selectGoal('missing-goal')
+    try {
+      before.selectGoal('missing-goal')
+    } catch (error) {
+      thrown = error
+    }
 
-    expect(useApp.getState().selectedGoalId).toBe(selectedGoalId)
+    expect(thrown).toBeInstanceOf(UnknownGoalError)
+    if (!(thrown instanceof UnknownGoalError)) {
+      throw new TypeError('Expected UnknownGoalError')
+    }
+    expect(thrown.goalId).toBe('missing-goal')
+    expect(useApp.getState()).toBe(before)
   })
 
-  it('addTask는 존재하지 않는 goal에 task를 만들지 않고 빈 id를 반환한다', () => {
-    const tasks = useApp.getState().tasks
+  it('addTask는 존재하지 않는 goal id에 typed error를 던지고 상태를 보존한다', () => {
+    const before = useApp.getState()
+    let thrown: unknown
 
-    const taskId = useApp.getState().addTask('missing-goal', '고아 task')
+    try {
+      before.addTask('missing-goal', '고아 task')
+    } catch (error) {
+      thrown = error
+    }
 
-    expect(taskId).toBe('')
-    expect(useApp.getState().tasks).toBe(tasks)
+    expect(thrown).toBeInstanceOf(UnknownGoalError)
+    if (!(thrown instanceof UnknownGoalError)) {
+      throw new TypeError('Expected UnknownGoalError')
+    }
+    expect(thrown.goalId).toBe('missing-goal')
+    expect(useApp.getState()).toBe(before)
   })
 
   it('selectGoal이 선택을 바꾼다', () => {
@@ -240,15 +260,22 @@ describe('스케줄링 액션', () => {
     })
   })
 
-  it('createBlock은 존재하지 않는 goal에 task나 block을 만들지 않고 빈 id를 반환한다', () => {
+  it('createBlock은 존재하지 않는 goal id에 typed error를 던지고 상태를 보존한다', () => {
     const before = useApp.getState()
+    let thrown: unknown
 
-    const blockId = before.createBlock(720, 780, '고아 block', 'missing-goal')
+    try {
+      before.createBlock(720, 780, '고아 block', 'missing-goal')
+    } catch (error) {
+      thrown = error
+    }
 
-    const after = useApp.getState()
-    expect(blockId).toBe('')
-    expect(after.tasks).toBe(before.tasks)
-    expect(after.blocks).toBe(before.blocks)
+    expect(thrown).toBeInstanceOf(UnknownGoalError)
+    if (!(thrown instanceof UnknownGoalError)) {
+      throw new TypeError('Expected UnknownGoalError')
+    }
+    expect(thrown.goalId).toBe('missing-goal')
+    expect(useApp.getState()).toBe(before)
   })
 
   it('createBlock은 goal이 없으면 task 없이 제목을 가진 free block만 만든다', () => {

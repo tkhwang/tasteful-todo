@@ -49,9 +49,8 @@ function GoalDocument({
             return
           }
 
-          if (addTask(goal.id, taskText) !== '') {
-            setDraft('')
-          }
+          addTask(goal.id, taskText)
+          setDraft('')
         }}
       />
     </div>

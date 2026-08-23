@@ -6,6 +6,22 @@ import type { CalendarEvent, Goal, GoalId, Task, TimeBlock } from './types'
 
 export { shiftDate, todayISO } from './lib/date'
 
+export class UnknownGoalError extends Error {
+  readonly goalId: GoalId
+
+  constructor(goalId: GoalId) {
+    super(`Unknown goal: ${goalId}`)
+    this.name = 'UnknownGoalError'
+    this.goalId = goalId
+  }
+}
+
+function requireKnownGoal(goals: readonly Goal[], goalId: GoalId): void {
+  if (!goals.some((goal) => goal.id === goalId)) {
+    throw new UnknownGoalError(goalId)
+  }
+}
+
 function uniqueBlockRefId(tasks: readonly Task[]): string {
   const usedBlockRefIds = new Set(
     tasks.flatMap(({ blockRefId }) => (blockRefId === undefined ? [] : [blockRefId])),
@@ -51,9 +67,8 @@ export const useApp = create<AppState>((set, get) => ({
   selectedGoalId: 'side-project',
   currentDate: todayISO(),
   selectGoal: (id) => {
-    set((state) =>
-      state.goals.some((goal) => goal.id === id) ? { selectedGoalId: id } : state,
-    )
+    requireKnownGoal(get().goals, id)
+    set({ selectedGoalId: id })
   },
   toggleTask: (taskId) => {
     set((state) => ({
@@ -63,9 +78,7 @@ export const useApp = create<AppState>((set, get) => ({
     }))
   },
   addTask: (goalId, text) => {
-    if (!get().goals.some((goal) => goal.id === goalId)) {
-      return ''
-    }
+    requireKnownGoal(get().goals, goalId)
 
     const id = crypto.randomUUID()
     set((state) => ({ tasks: [...state.tasks, { id, goalId, text, done: false }] }))
@@ -106,8 +119,8 @@ export const useApp = create<AppState>((set, get) => ({
     })
   },
   createBlock: (startMin, endMin, title, goalId) => {
-    if (goalId !== undefined && !get().goals.some((goal) => goal.id === goalId)) {
-      return ''
+    if (goalId !== undefined) {
+      requireKnownGoal(get().goals, goalId)
     }
 
     const blockId = crypto.randomUUID()
