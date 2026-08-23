@@ -81,7 +81,6 @@ export default function Timeline() {
               }}
               aria-label={`${event.title}, ${fmtRange(event.startMin, event.endMin)}`}
             >
-              <span className="t mono">{fmtRange(event.startMin, event.endMin)}</span>
               <span className="n">{event.title}</span>
             </div>
           ))}

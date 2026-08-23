@@ -491,12 +491,12 @@ body {
 
 .tl-date .dow {
   margin-left: 4px;
-  color: var(--text-secondary);
+  color: var(--timeline-metadata);
   font-size: 13px;
 }
 
 .tl-cap {
-  color: var(--text-secondary);
+  color: var(--timeline-metadata);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -526,7 +526,7 @@ body {
   position: absolute;
   top: -8px;
   left: -38px;
-  color: var(--text-secondary);
+  color: var(--timeline-axis);
   font-size: 10.5px;
   font-variant-numeric: tabular-nums;
 }
@@ -558,33 +558,33 @@ body {
   border-left: 3px solid;
 }
 
-.ck-block-pine {
+.block.mine.ck-block-pine {
   background: color-mix(in oklab, var(--g-pine) 16%, var(--panel));
-  border-color: var(--g-pine);
+  border-left-color: var(--g-pine);
 }
 
-.ck-block-blue {
+.block.mine.ck-block-blue {
   background: color-mix(in oklab, var(--g-blue) 16%, var(--panel));
-  border-color: var(--g-blue);
+  border-left-color: var(--g-blue);
 }
 
-.ck-block-amber {
+.block.mine.ck-block-amber {
   background: color-mix(in oklab, var(--g-amber) 16%, var(--panel));
-  border-color: var(--g-amber);
+  border-left-color: var(--g-amber);
 }
 
-.ck-block-plum {
+.block.mine.ck-block-plum {
   background: color-mix(in oklab, var(--g-plum) 16%, var(--panel));
-  border-color: var(--g-plum);
+  border-left-color: var(--g-plum);
 }
 
-.ck-block-neutral {
+.block.mine.ck-block-neutral {
   background: color-mix(in oklab, var(--faint) 16%, var(--panel));
-  border-color: var(--faint);
+  border-left-color: var(--faint);
 }
 
 .block.free {
-  color: var(--text-secondary);
+  color: var(--timeline-metadata);
   background: color-mix(in oklab, var(--ink) 7%, var(--panel));
   border-left: 3px solid var(--faint);
 }
@@ -600,13 +600,20 @@ body {
 }
 
 .block.cal {
-  color: var(--text-secondary);
+  display: flex;
+  align-items: flex-start;
+  padding: 3px 10px;
+  color: var(--timeline-metadata);
   background: repeating-linear-gradient(
     -45deg,
     color-mix(in oklab, var(--ink) 6%, transparent) 0 4px,
     transparent 4px 9px
   );
   border: 1px dashed var(--faint);
+}
+
+.block.cal .n {
+  line-height: 1.25;
 }
 
 .block .resize {

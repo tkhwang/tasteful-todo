@@ -26,6 +26,15 @@ function token(block: string, name: string): string {
   return value.toUpperCase()
 }
 
+function tokenReference(block: string, name: string): string {
+  const match = block.match(new RegExp(`--${name}:\\s*var\\(--([a-z0-9-]+)\\);`))
+  const value = match?.[1]
+  if (value === undefined) {
+    throw new TypeError(`Expected --${name} token reference`)
+  }
+  return value
+}
+
 function rgb(hex: string): Rgb {
   if (!/^#[0-9A-F]{6}$/i.test(hex)) {
     throw new TypeError(`Expected six-digit hex color, received ${hex}`)
@@ -121,6 +130,14 @@ describe('Editor semantic color tokens', () => {
         expect(token(theme.block, name)).toBe(value)
       }
     }
+  })
+
+  it.each(themes)('$name timeline metadata는 WCAG-safe secondary text를 공유하고 크기로 위계를 만든다', ({ block }) => {
+    expect(tokenReference(block, 'timeline-metadata')).toBe('text-secondary')
+    expect(tokenReference(block, 'timeline-axis')).toBe('text-secondary')
+
+    const panel = rgb(token(block, 'panel'))
+    expect(contrast(rgb(token(block, 'text-secondary')), panel)).toBeGreaterThanOrEqual(4.5)
   })
 
   it.each(themes)('$name normal text와 control 경계 대비를 충족한다', ({ block }) => {

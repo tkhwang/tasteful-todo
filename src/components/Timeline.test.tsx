@@ -1,3 +1,6 @@
+/// <reference types="node" />
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { minToY } from '../lib/time'
@@ -7,6 +10,7 @@ import Timeline from './Timeline'
 
 const TEST_TODAY = '2026-08-23'
 const scrollToMock = vi.fn()
+const appStyles = readFileSync(resolve('src/styles/app.css'), 'utf8')
 
 beforeEach(() => {
   scrollToMock.mockReset()
@@ -37,6 +41,31 @@ describe('timeline', () => {
 
     expect(screen.getByText('점심').closest('.block')).toHaveClass('free')
     expect(screen.getByText('가족 저녁').closest('.block')).toHaveClass('cal')
+  })
+
+  it.each([
+    ['pine', 'g-pine'],
+    ['blue', 'g-blue'],
+    ['amber', 'g-amber'],
+    ['plum', 'g-plum'],
+    ['neutral', 'faint'],
+  ] as const)('keeps the %s block left border tied to its goal token', (colorKey, token) => {
+    expect(appStyles).toMatch(
+      new RegExp(
+        `\\.block\\.mine\\.ck-block-${colorKey}\\s*\\{[^}]*border-left-color:\\s*var\\(--${token}\\)`,
+        's',
+      ),
+    )
+  })
+
+  it('keeps a compact calendar event title as its only visible child', () => {
+    render(<Timeline />)
+
+    const event = screen.getByText('주간 리뷰 콜').closest('.block.cal')
+
+    expect(event).toHaveStyle({ height: '24px' })
+    expect(event?.querySelector('.n')).toHaveTextContent('주간 리뷰 콜')
+    expect(event?.querySelector('.t')).not.toBeInTheDocument()
   })
 
   it('shows the total planned duration for the selected date', () => {

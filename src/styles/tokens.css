@@ -13,6 +13,9 @@
   --g-amber: #A9761F;
   --g-plum: #7A4A6D;
   --text-secondary: #747166;
+  /* Timeline metadata stays WCAG-safe; type size, not lower contrast, preserves hierarchy. */
+  --timeline-metadata: var(--text-secondary);
+  --timeline-axis: var(--text-secondary);
   --text-placeholder: #747166;
   --control-border: #918D7F;
   --chip-pine-fg: #2E6B4C;
@@ -38,6 +41,9 @@
     --g-amber: #C99A4B;
     --g-plum: #B385A6;
     --text-secondary: #9E9C90;
+    /* Timeline metadata stays WCAG-safe; type size, not lower contrast, preserves hierarchy. */
+    --timeline-metadata: var(--text-secondary);
+    --timeline-axis: var(--text-secondary);
     --text-placeholder: #9E9C90;
     --control-border: #777565;
     --chip-pine-fg: #6FAE8C;
