@@ -26,10 +26,10 @@ describe('time constants', () => {
 describe('timeline coordinate conversion', () => {
   it('converts minutes to vertical pixels', () => {
     // Given / When
-    const y = minToY(480)
+    const y = [minToY(0), minToY(480)]
 
     // Then
-    expect(y).toBe(384)
+    expect(y).toEqual([0, 384])
   })
 
   it('converts vertical pixels to minutes', () => {
@@ -63,12 +63,23 @@ describe('time range clamping', () => {
     [600, 605, [600, 615]],
     [-30, 30, [0, 30]],
     [1435, 1500, [1425, 1440]],
-  ])('clamps %i–%i to a valid snapped range', (start, end, expected) => {
+    [601, 690, [601, 690]],
+    [10, 20, [10, 25]],
+  ])('clamps %i–%i to a valid day range', (start, end, expected) => {
     // Given / When
     const range = clampRange(start, end)
 
     // Then
     expect(range).toEqual(expected)
+  })
+
+  it('returns a mutable tuple', () => {
+    // Given / When
+    const range: [number, number] = clampRange(10, 20)
+    range[0] = 5
+
+    // Then
+    expect(range).toEqual([5, 25])
   })
 })
 
@@ -86,10 +97,10 @@ describe('time formatting', () => {
 
   it('formats a range with an en dash', () => {
     // Given / When
-    const formatted = fmtRange(480, 690)
+    const formatted = fmtRange(600, 690)
 
     // Then
-    expect(formatted).toBe('08:00–11:30')
+    expect(formatted).toBe('10:00–11:30')
   })
 
   it.each([

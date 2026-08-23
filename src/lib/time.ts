@@ -17,19 +17,10 @@ export function snap(minutes: number): number {
   return Math.min(DAY_MIN, Math.max(0, snapped))
 }
 
-export function clampRange(start: number, end: number): readonly [number, number] {
-  const clampedStart = snap(start)
-  const clampedEnd = snap(end)
-
-  if (clampedEnd - clampedStart >= SNAP_MIN) {
-    return [clampedStart, clampedEnd]
-  }
-
-  if (clampedEnd === DAY_MIN) {
-    return [DAY_MIN - SNAP_MIN, DAY_MIN]
-  }
-
-  return [clampedStart, clampedStart + SNAP_MIN]
+export function clampRange(start: number, end: number): [number, number] {
+  const clampedStart = Math.min(DAY_MIN - SNAP_MIN, Math.max(0, start))
+  const clampedEnd = Math.min(DAY_MIN, Math.max(clampedStart + SNAP_MIN, end))
+  return [clampedStart, clampedEnd]
 }
 
 export function fmtTime(minutes: number): string {
