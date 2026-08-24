@@ -1,0 +1,56 @@
+name: Build macOS
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (vX.Y.Z)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        target: [aarch64-apple-darwin, x86_64-apple-darwin]
+    env:
+      TAG_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ env.TAG_NAME }}
+      - uses: ./.github/actions/setup-macos-build
+        with:
+          rust-targets: ${{ matrix.target }}
+      - name: Write ASC API key to file
+        run: echo "${{ secrets.APPLE_API_KEY_P8 }}" | base64 --decode > AuthKey.p8
+      - uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_PATH: ${{ github.workspace }}/AuthKey.p8
+        with:
+          projectPath: .
+          args: --target ${{ matrix.target }}
+          tagName: ${{ env.TAG_NAME }}
+          releaseName: Tasteful Todo ${{ env.TAG_NAME }}
+          releaseDraft: false
+
+  bump-cask:
+    name: Bump Homebrew cask
+    needs: build-macos
+    uses: ./.github/workflows/homebrew-bump.yml
+    with:
+      tag: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.release.tag_name }}
+    secrets:
+      TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
