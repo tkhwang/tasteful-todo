@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+      Developer ID + notarized DMG 배포용 엔타이틀먼트.
+      App Sandbox(Mac App Store 전용)를 켜면 WKWebView WebContent가
+      네트워크 권한 부족으로 시작 실패해 빈 화면이 될 수 있다.
+    -->
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+</dict>
+</plist>
